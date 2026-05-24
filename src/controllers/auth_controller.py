@@ -38,3 +38,7 @@ def verify():
     status_code = 200 if result['success'] else 401
     
     return jsonify(result), status_code
+
+@auth_bp.route('/health', methods=['GET'])
+def healthz():
+    return jsonify(status="healthy"), 200

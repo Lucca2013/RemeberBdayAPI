@@ -53,6 +53,17 @@ class UserRepository:
             return False
         
     @staticmethod
+    def get_firebaseid_by_id(id: str) -> Optional[str]:
+        try:
+            with Database.get_cursor(commit=False) as cursor:
+                sql = """SELECT firebase_id FROM users WHERE "ID" = %s"""
+                cursor.execute(sql, (id))
+                result = cursor.fetchone()
+                return str(result) if result else None
+        except:
+            return None
+        
+    @staticmethod
     def get_all_birthdays() -> list[dict]:
         try:
             with Database.get_cursor(commit=False) as cursor:

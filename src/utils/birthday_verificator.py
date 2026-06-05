@@ -46,7 +46,9 @@ def check_api():
                     diff = (bday_this_year - today).days
 
                     if 0 <= diff <= 3:
-                        if(bday_data["firebase_id"] != None):
+                        firebase_id = UserRepository.get_firebaseid_by_id(bday_data["ID"])
+                        
+                        if(firebase_id != None):
                             message = messaging.Message(
                                 notification=messaging.Notification(
                                     title=f"{bday_data['name']}'s birthday is coming!",

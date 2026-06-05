@@ -19,10 +19,10 @@ def register():
 def login():
     data = request.get_json()
     
-    if not data or 'username' not in data or 'password' not in data:
+    if not data or 'username' not in data or 'password' not in data or 'firebase_id' not in data or 'firebase_id' not in data:
         return jsonify({'success': False, 'message': 'Username and password required'}), 400
     
-    result = AuthService.login(data['username'], data['password'])
+    result = AuthService.login(data['username'], data['password'], data['firebase_id'])
     status_code = 200 if result['success'] else 401
     
     return jsonify(result), status_code

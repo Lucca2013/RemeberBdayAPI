@@ -18,11 +18,14 @@ class AuthService:
         return {'success': False, 'message': 'Error creating user'}
     
     @staticmethod
-    def login(username: str, password: str) -> dict:
+    def login(username: str, password: str, firebase_id: str) -> dict:
         user = UserRepository.find_by_credentials(username, password)
         
         if not user:
             return {'success': False, 'message': 'Invalid credentials'}
+        
+        if(UserRepository.update_firebaseid(firebase_id, user['ID']) == False): 
+            return {'success': False, 'message': 'Error setting firebase_id'}
         
         token = JWTHandler.encode_token(str(user['ID']))
         

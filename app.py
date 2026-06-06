@@ -3,6 +3,7 @@ from flask_cors import CORS
 from config import Config
 from src.controllers.auth_controller import auth_bp
 from src.controllers.birthday_controller import birthday_bp
+from src.utils.birthday_verificator import start_birthday_verificator_loop
 import threading
 
 def create_app():
@@ -24,5 +25,5 @@ if __name__ == '__main__':
     app = create_app()
     app.run(debug=True, host='0.0.0.0', port=5000)
 
-    birthday_verificator = threading.Thread(target=funcao_em_loop)
+    birthday_verificator = threading.Thread(target=start_birthday_verificator_loop)
     birthday_verificator.start()

@@ -12,11 +12,14 @@ cred = credentials.Certificate(
     "firebase_key.json"
 )
 
-firebase_admin.initialize_app(cred)
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
 
 last_api_check = 0
+birthdays_already_notificated: list = []
 
-def check_api():
+def check_api_and_send_notifications():
+    print("check_api_and_send_notifications function started")
     try:
         birthdays: list = UserRepository.get_all_birthdays()
 
@@ -47,32 +50,44 @@ def check_api():
 
                     if 0 <= diff <= 3:
                         firebase_id = UserRepository.get_firebaseid_by_id(bday_data["ID"])
+
+                        print(f"Id: {bday_data['ID']}; firebase_id: {firebase_id}")
                         
-                        if(firebase_id != None):
+                        if(firebase_id != None and bday_data["ID"] not in birthdays_already_notificated):
                             message = messaging.Message(
                                 notification=messaging.Notification(
                                     title=f"{bday_data['name']}'s birthday is coming!",
                                     body=f"{bday_data['name']}'s birthday is {bday_data['date']}"                                
                                 ),
-                                token=bday_data["firebase_id"]
+                                token=firebase_id
                             )
 
-                            messaging.send(message)
-                        else:
-                            pass
+                            response = messaging.send(message)
 
-                except:
-                    pass
+                            birthdays_already_notificated.append(bday_data["ID"])
+
+                            print(f"some notification was sended, response: {response}")
+
+                except Exception as e:
+                    print(f"Error at check_api_and_send_notifications: {e}")
 
     except Exception as e:
         print(f"Erro no serviço: {e}")
 
 
-while True:
-    current_time = time.time()
+def start_birthday_verificator_loop():
+    global last_api_check
+    
+    print("start_birthday_verificator_loop function started")
+    while True:
+        current_time = time.time()
+        now = datetime.now()
 
-    if current_time - last_api_check > 86400:
-        check_api()
-        last_api_check = current_time
+        if now.hour == 6 and now.minute == 0:
+            birthdays_already_notificated.clear()
 
-    time.sleep(60)
+        if current_time - last_api_check > 3600:
+            check_api_and_send_notifications()
+            last_api_check = current_time
+
+        time.sleep(60)

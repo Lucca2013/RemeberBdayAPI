@@ -5,6 +5,7 @@ from src.controllers.auth_controller import auth_bp
 from src.controllers.birthday_controller import birthday_bp
 from src.utils.birthday_verificator import start_birthday_verificator_loop
 import threading
+import os
 
 def create_app():
     app = Flask(__name__)
@@ -23,7 +24,9 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+        
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
+        birthday_verificator = threading.Thread(target=start_birthday_verificator_loop, daemon=True)
+        birthday_verificator.start()
 
-    birthday_verificator = threading.Thread(target=start_birthday_verificator_loop)
-    birthday_verificator.start()
+    app.run(debug=True, host='0.0.0.0', port=5000)

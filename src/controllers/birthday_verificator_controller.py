@@ -4,7 +4,7 @@ import json
 
 birthday_bp = Blueprint('birthday', __name__)
 
-@birthday_bp.route('/message_push_birthdays', methods=['GET'])
+@birthday_bp.route('/message_push_birthdays/', methods=['GET', 'POST'])
 def message_push_birthdays():
     with open('local_storage.json', 'r', encoding='utf-8') as f:
         local_storage = json.load(f)
@@ -15,7 +15,7 @@ def message_push_birthdays():
     
     return jsonify({"status": "ok" if response else "not ok"}), 200 if response else 500
 
-@birthday_bp.route('/clean_birthdays_already_notificated_at_localstorage', methods=['GET'])
+@birthday_bp.route('/clean_birthdays_already_notificated_at_localstorage/', methods=['GET', 'POST'])
 def trigger_birthday_check():
     with open('local_storage.json', 'r', encoding='utf-8') as f:
         local_storage = json.load(f)

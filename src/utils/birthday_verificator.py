@@ -1,5 +1,6 @@
 import time
 from datetime import date, datetime
+import json
 
 from src.repositories.user_repository import UserRepository
 
@@ -8,18 +9,14 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import messaging
 
-cred = credentials.Certificate(
-    "firebase_key.json"
-)
-
-if not firebase_admin._apps:
-    firebase_admin.initialize_app(cred)
-
-last_api_check = 0
-birthdays_already_notificated: list = []
-
-def check_api_and_send_notifications():
-    print("check_api_and_send_notifications function started")
+def check_api_and_send_notifications(birthdays_already_notificated):
+    cred = credentials.Certificate(
+        "firebase_key.json"
+    )
+    
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
+    
     try:
         birthdays: list = UserRepository.get_all_birthdays()
 
@@ -65,29 +62,21 @@ def check_api_and_send_notifications():
                             response = messaging.send(message)
 
                             birthdays_already_notificated.append(bday_data["ID"])
+                            
+                            with open('local_storage.json', 'r', encoding='utf-8') as f:
+                                local_storage = json.load(f)
+
+                            local_storage["birthdays_already_notificated"].clear()
+                            local_storage["birthdays_already_notificated"] = birthdays_already_notificated
+
+                            with open('local_storage.json', 'w', encoding='utf-8') as f:
+                                json.dump(local_storage, f, ensure_ascii=False, indent=4)
 
                             print(f"some notification was sended, response: {response}")
+                except Exception:
+                    continue
 
-                except Exception as e:
-                    print(f"Error at check_api_and_send_notifications: {e}")
-
-    except Exception as e:
-        print(f"Erro no serviço: {e}")
-
-
-def start_birthday_verificator_loop():
-    global last_api_check
-    
-    print("start_birthday_verificator_loop function started")
-    while True:
-        current_time = time.time()
-        now = datetime.now()
-
-        if now.hour == 6 and now.minute == 0:
-            birthdays_already_notificated.clear()
-
-        if current_time - last_api_check > 3600:
-            check_api_and_send_notifications()
-            last_api_check = current_time
-
-        time.sleep(60)
+    except Exception:
+        return False
+        
+    return True

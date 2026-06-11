@@ -24,3 +24,5 @@ def trigger_birthday_check():
 
     with open('local_storage.json', 'w', encoding='utf-8') as f:
         json.dump(local_storage, f, ensure_ascii=False, indent=4)
+        
+    return jsonify({"status": "cache_cleared"}), 200

@@ -3,6 +3,7 @@ from flask_cors import CORS
 from config import Config
 from src.controllers.auth_controller import auth_bp
 from src.controllers.birthday_controller import birthday_bp
+from src.controllers.birthday_verificator_controller import notifications_bp
 
 def create_app():
     app = Flask(__name__)
@@ -12,6 +13,7 @@ def create_app():
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(birthday_bp, url_prefix='/api/birthdays')
+    app.register_blueprint(notifications_bp, url_prefix='/api/notifications')
     
     @app.route('/health', methods=['GET'])
     def health():

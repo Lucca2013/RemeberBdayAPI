@@ -3,6 +3,7 @@ from datetime import date, datetime
 import json
 
 from src.repositories.user_repository import UserRepository
+from src.repositories.birthday_repository import BirthdayRepository
 
 import firebase_admin
 
@@ -18,65 +19,69 @@ def check_api_and_send_notifications(birthdays_already_notificated):
         firebase_admin.initialize_app(cred)
     
     try:
-        birthdays: list = UserRepository.get_all_birthdays()
+        users: list = UserRepository.get_all_users()
+        
+        if users:            
+            for user in users:
+                user_id = user.get("ID")
+                firebase_id = UserRepository.get_firebaseid_by_id(str(user_id))
 
-        if birthdays:
-            today = date.today()
+                
+                if(firebase_id != None):
+                    today = date.today()
+                    birthdays = BirthdayRepository.find_by_user_id(user_id)
+                    
+                
+                    for bday in birthdays:
+                        name = bday.get("name", "Unknown")
+                        date_str = bday.get("date", "")
 
-            for bday_data in birthdays:
+                        try:
+                            bday_obj = datetime.strptime(
+                                date_str,
+                                "%d/%m/%Y"
+                            ).date()
 
-                name = bday_data.get("name", "Unknown")
-                date_str = bday_data.get("date", "")
-
-                try:
-                    bday_obj = datetime.strptime(
-                        date_str,
-                        "%d/%m/%Y"
-                    ).date()
-
-                    bday_this_year = bday_obj.replace(
-                        year=today.year
-                    )
-
-                    if bday_this_year < today:
-                        bday_this_year = bday_this_year.replace(
-                            year=today.year + 1
-                        )
-
-                    diff = (bday_this_year - today).days
-
-                    if 0 <= diff <= 3:
-                        firebase_id = UserRepository.get_firebaseid_by_id(bday_data["ID"])
-
-                        print(f"Id: {bday_data['ID']}; firebase_id: {firebase_id}")
-                        
-                        if(firebase_id != None and bday_data["ID"] not in birthdays_already_notificated):
-                            message = messaging.Message(
-                                notification=messaging.Notification(
-                                    title=f"{bday_data['name']}'s birthday is coming!",
-                                    body=f"{bday_data['name']}'s birthday is {bday_data['date']}"                                
-                                ),
-                                token=firebase_id
+                            bday_this_year = bday_obj.replace(
+                                year=today.year
                             )
 
-                            response = messaging.send(message)
+                            if bday_this_year < today:
+                                bday_this_year = bday_this_year.replace(
+                                    year=today.year + 1
+                                )
 
-                            birthdays_already_notificated.append(bday_data["ID"])
-                            
-                            with open('local_storage.json', 'r', encoding='utf-8') as f:
-                                local_storage = json.load(f)
+                            diff = (bday_this_year - today).days
 
-                            local_storage["birthdays_already_notificated"].clear()
-                            local_storage["birthdays_already_notificated"] = birthdays_already_notificated
+                            if 0 <= diff <= 3:
+                                if(bday["id"] not in birthdays_already_notificated):
+                                    message = messaging.Message(
+                                        notification=messaging.Notification(
+                                            title=f"{name}'s birthday is coming!",
+                                            body=f"{name}'s birthday is {date_str}"                                
+                                        ),
+                                        token=firebase_id
+                                    )
 
-                            with open('local_storage.json', 'w', encoding='utf-8') as f:
-                                json.dump(local_storage, f, ensure_ascii=False, indent=4)
+                                    messaging.send(message)
 
-                            print(f"some notification was sended, response: {response}")
-                except Exception:
-                    continue
+                                    birthdays_already_notificated.append(bday["id"])
+                                    
+                                    with open('local_storage.json', 'r', encoding='utf-8') as f:
+                                        local_storage = json.load(f)
 
-    except Exception:
+                                    local_storage["birthdays_already_notificated"].clear()
+                                    local_storage["birthdays_already_notificated"] = birthdays_already_notificated
+
+                                    with open('local_storage.json', 'w', encoding='utf-8') as f:
+                                        json.dump(local_storage, f, ensure_ascii=False, indent=4)
+
+                        except Exception as err:
+                            print(err)
+                            continue
+
+    except Exception as err:
+        print(err)
         return False
         
     return True

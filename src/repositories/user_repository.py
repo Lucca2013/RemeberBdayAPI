@@ -57,14 +57,20 @@ class UserRepository:
         try:
             with Database.get_cursor(commit=False) as cursor:
                 sql = """SELECT firebase_id FROM users WHERE "ID" = %s"""
-                cursor.execute(sql, (id))
+
+                cursor.execute(sql, (id,)) 
                 result = cursor.fetchone()
-                return str(result) if result else None
-        except:
+                
+                if result and result.get("firebase_id"):
+                    return str(result["firebase_id"])
+                
+                return None
+        except Exception as e:
+            print(f"Erro em get_firebaseid_by_id: {e}")
             return None
         
     @staticmethod
-    def get_all_birthdays() -> list[dict]:
+    def get_all_users() -> list[dict]:
         try:
             with Database.get_cursor(commit=False) as cursor:
                 sql = """

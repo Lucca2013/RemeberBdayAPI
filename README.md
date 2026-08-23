@@ -1,10 +1,10 @@
-# RememberBdayAPI 🧠⚙️
+# RememberBdayAPI 
 
 **RememberBdayAPI** is a RESTful API developed to serve as the backend ecosystem for the [rememberBday](https://github.com/lucca2013/rememberBday) mobile app. It manages the data lifecycle, user authentication, and the event-checking logic required to trigger notifications.
 
 ---
 
-## ✨ Features
+##  Features
 
 * **JWT Authentication:** Secure access control using *JSON Web Tokens* to protect CRUD routes.
 * **Birthday Management (CRUD):** Structured endpoints to Create, Read, Update, and Delete birthday records linked to each user.
@@ -13,7 +13,7 @@
 
 ---
 
-## 🛠️ Technologies Used
+##  Technologies Used
 
 * **[Python](https://www.python.org/)**: The project's primary programming language.
 * **[Flask](https://flask.palletsprojects.com/)**: A web micro-framework used to build API routes and logic.
